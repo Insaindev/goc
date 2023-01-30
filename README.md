@@ -1,7 +1,7 @@
 # GOC (General objects categorization)
 
 # github url: 
-## git hub git clone https://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@github.com/Insaindev/goc.git
+## git hub git clone https://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@github.com/Insaindev/goc.git
 
 # odkaz na yolo3.weight => https://drive.google.com/file/d/1QGHp37BvVqN_7zGodf1m1RC_teJ1qEW2/view?usp=share_link
 
