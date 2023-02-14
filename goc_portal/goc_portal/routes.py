@@ -1,14 +1,19 @@
 import secrets
 import os
+from zipfile import ZipFile
+import zipfile
+import io
+
 from PIL import Image
 
 from flask import render_template, url_for, flash, redirect, request, abort
 from goc_portal import app, db, bcrypt, mail
-from goc_portal.forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm, RequestResetForm, ResetPasswordForm
-from goc_portal.models import User, Post
+from goc_portal.forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm, RequestResetForm, ResetPasswordForm, ClassifierMLForm
+from goc_portal.models import User, Post, MLClassifier
 from flask_login import login_user, current_user, logout_user, login_required
 from flask_mail import Message
 
+cwd = os.getcwd()
 
 @app.route("/")
 @app.route("/home")
@@ -173,6 +178,52 @@ def update_post(post_id):
         form.tag.data = post.tag
 
     return render_template('create_post.html', title="Update Post", form = form, legend = "Update Post")
+
+@app.route("/classifier/new", methods=['GET', 'POST'])
+@login_required
+def new_classifierml():
+    form = ClassifierMLForm()
+    
+    if form.validate_on_submit():
+        title = form.title.data
+        if request.method == 'POST':
+        # Get the uploaded file from the form
+            zip_file = request.files['zipedclassifier']
+            print(zip_file)
+
+            if zip_file:
+            # Read the contents of the zip file into memory
+                zip_contents = io.BytesIO(zip_file.read())
+            
+                zip_path = os.path.join(app.root_path, 'static/projects', str(title) )
+                print(zip_path)
+                
+                # Unzip the contents of the file into a temporary directory
+                with zipfile.ZipFile(zip_contents) as myzip:
+                    myzip.extractall(zip_path)
+                
+                # Read the contents of the unzipped file and print it out
+                # list to store files
+                for root, dirs, files in os.walk(zip_path):
+                    level = root.replace(zip_path, '').count(os.sep)
+                    indent = ' ' * 4 * (level)
+                    print('{}{}/'.format(indent, os.path.basename(root)))
+                    subindent = ' ' * 4 * (level + 1)
+                    for f in files:
+                        print('{}{}'.format(subindent, f))
+                flash('File uploaded and unzipped successfully!')
+                    
+                #flash('File uploaded and unzipped successfully!')
+
+        
+        
+        # save post to db
+        # post = MLClassifier(title=form.title.data, image_file = '')
+        # db.session.add(post)
+        # db.session.commit()
+        #flash('Your post has been created!','success')
+        return redirect(url_for('home'))
+    return render_template('ml_classifier_new.html', title='New ML Classifier', form = form, legend='New ML Classifier')
 
 @app.route("/post/<int:post_id>/delete", methods=['POST'])
 @login_required
